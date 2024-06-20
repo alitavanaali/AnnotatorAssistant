@@ -27,12 +27,9 @@ annotations_path = os.path.join(UPLOAD_FOLDER, 'annotations')
 predictions_path = os.path.join(UPLOAD_FOLDER, 'predictions')
 reviewed_path = os.path.join(UPLOAD_FOLDER, 'reviewed')
 
-#id2label= {0: 'client_code', 1: 'client_id', 2: 'client_reference', 3: 'client_vat', 4: 'delivery_place', 5: 'detail_desc', 6: 'detail_packnr', 7: 'detail_packtype', 8: 'detail_qty', 9: 'detail_weight', 10: 'detail_weight_um', 11: 'doc_date', 12: 'doc_nr', 13: 'doc_type', 14: 'issuer_addr', 15: 'issuer_cap', 16: 'issuer_city', 17: 'issuer_contact', 18: 'issuer_contact_email', 19: 'issuer_contact_phone', 20: 'issuer_fax', 21: 'issuer_name', 22: 'issuer_prov', 23: 'issuer_state', 24: 'issuer_tel', 25: 'issuer_vat', 26: 'operation_code', 27: 'order_date', 28: 'order_nr', 29: 'others', 30: 'pickup_date', 31: 'pickup_place', 32: 'receiver_addr', 33: 'receiver_cap', 34: 'receiver_city', 35: 'receiver_fax', 36: 'receiver_name', 37: 'receiver_prov', 38: 'receiver_state', 39: 'receiver_tel', 40: 'receiver_vat', 41: 'recipient_name', 42: 'ref_nr', 43: 'sender_name', 44: 'service_date', 45: 'service_date-end', 46: 'service_key', 47: 'service_order', 48: 'service_value', 49: 'shipment_nr', 50: 'time', 51: 'tot_value', 52: 'correspondent_ref', 53: 'vehicle_plate'}
-#id2label = {0: 'box_id', 1: 'client_id', 2: 'client_name', 3: 'client_address', 4: 'giro', 5: 'date', 6: 'time', 7: 'others', 8: 'picking', 9: 'client_city', 10: 'client_cap', 11: 'client_prov', 12: 'sender_name'}
 id2label = {}
 # replace your Huggingface access token here if you want to directly load page
 #auth_token = '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'
-#model_path = 'DataIntelligenceTeam/pharma_label_v3.2'
 
 global model
 global processor
