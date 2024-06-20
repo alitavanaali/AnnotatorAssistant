@@ -1,10 +1,16 @@
 # Annotator Assistant
 
-Welcome to Annotator Assistant, a tool designed to streamline your annotation processes with integrated OCR capabilities.
+Welcome to Annotator Assistant, a tool designed to streamline your annotation processes with integrated OCR (Google Cloud Platform - vision OCR) capabilities and transformer model LayoutLMv3 for predicting and enhancing data quality.
 
 <img src="static/homepage.jpg" alt="UI 1" width="49%"/> <img src="static/setup.jpg" alt="UI 2" width="49%"/>
 <img src="static/UI1.jpg" alt="UI 1" width="49%"/> <img src="static/UI2.jpg" alt="UI 1" width="49%"/>
 
+## Features of this application
+- converting PDF files to Images (JPEG) in 100dpi, 200dpi and 300dpi
+- Perform OCR on Images (using GCP)
+- Annotate and label each word or section by defining bounding boxes
+- Using AI (model: LayoutLMv3) to annotate documents
+- Using AI to double check the annotations
 
 ## Table of Contents
 - [Installation](#installation)
