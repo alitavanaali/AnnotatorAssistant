@@ -5,12 +5,16 @@ Welcome to Annotator Assistant, a tool designed to streamline your annotation pr
 <img src="static/homepage.jpg" alt="UI 1" width="49%"/> <img src="static/setup.jpg" alt="UI 2" width="49%"/>
 <img src="static/UI1.jpg" alt="UI 1" width="49%"/> <img src="static/UI2.jpg" alt="UI 1" width="49%"/>
 
-## Features of this application
+<br>
+
+## 🔥 Features of this application
 - converting PDF files to Images (JPEG) in 100dpi, 200dpi and 300dpi
 - Perform OCR on Images (using GCP)
 - Annotate and label each word or section by defining bounding boxes
 - Using AI (model: LayoutLMv3) to annotate documents
 - Using AI to double check the annotations
+
+<br>
 
 ## Table of Contents
 - [Installation](#installation)
