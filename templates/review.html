@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reviewing Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        #main-content {
+            display: flex;
+        }
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #2c3e50; /* Dark blue background */
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #header-title {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        #logo-area{
+            display: flex;
+            align-items: center;
+        }
+        
+        #homebtn i{
+            margin-right: 15px;
+            color: white;
+            font-size: 24px;
+        }
+
+        .header-button {
+            padding: 8px 16px;
+            font-size: 16px;
+            background-color: #3498db; /* Soft blue */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .header-button:hover {
+            background-color: #2980b9; /* Darker blue */
+        }
+        #right-panel {
+            flex: 0 0 200px; /* Do not grow, do not shrink, initial width 200px */
+            background-color: #f0f0f0;
+            padding-left: 10px;
+            padding-right: 10px;
+            padding-top: 5px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sort-options {
+            padding: 10px;
+            font-size: 13px;
+            border-bottom: 1px solid;
+        }
+
+        #image-list {
+            width: 200px; /* Fixed width */
+            min-width: 200px;
+            background-color: #f0f0f0;
+            padding: 10px;
+            height: 100vh;
+            overflow: auto
+        }
+
+        #image-container {
+            flex-grow: 1;
+            text-align: left;
+            position: relative; /* Needed for absolute positioning of rectangles */
+            overflow: hidden; /* Ensures nothing spills over the container */
+            border-left: 2px #2b2b2b solid;
+            border-right: 2px #2b2b2b solid;
+        }
+
+        #image-display {
+            flex-grow: 1;
+            text-align: left;
+            position: relative; /* Needed for absolute positioning of rectangles */
+            overflow: hidden; /* Ensures nothing spills over the container */
+        }
+
+        #image-display img {
+            max-width: 100%;
+            /*max-height: 100vh; /* Prevents the image from being taller than the viewport */
+            object-fit: contain; /* Ensures the aspect ratio is maintained */
+        }
+        
+        .image-name {
+            display: inline-block;
+            white-space: nowrap;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
+        }
+
+        .image-name:hover {
+            background-color: #f0f0f0;
+        }
+
+        .selected {
+            font-weight: bold;
+            background-color: #a8c5e9;
+        }
+
+        .rectangle {
+            border: 2px solid red;
+            position: absolute;
+        }
+        .rectangle-selection {
+            border: 2px solid blue;
+            position: absolute;
+        }
+
+        .dialog-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%; /* Adjust width based on preference */
+            max-width: 800px;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+            z-index: 1001;
+            overflow-y: auto; /* Allows scrolling */
+            max-height: 85vh; /* Limits the height */
+        }
+
+        .dialog-box h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .dialog-box label {
+            display: block; /* Ensures each label is on a new line */
+            width: 32%; /* Adjusts for three columns */
+            float: left; /* Floats labels to left */
+            box-sizing: border-box; /* Includes padding and border in width */
+            padding: 5px; /* Space around the text */
+        }
+
+        .dialog-box input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .dialog-box button {
+            clear: both; /* Fixes floating issues */
+            margin-top: 20px;
+            margin-right: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .dialog-box button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Clearfix hack for floating elements */
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        /* Styling to ensure the dialog is responsive */
+        @media (max-width: 600px) {
+            .dialog-box label {
+                width: 100%; /* Stack labels in small screens */
+            }
+        }
+
+
+        .word-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .word-item button{
+            margin-bottom: 10px;
+        }
+
+        .word-editable {
+            display: block;
+            margin-bottom: 10px;
+            max-width: 120px;
+        }
+
+        .word-item label {
+            display: block;
+            margin-bottom: 5px; /* Adjust as needed */
+        }
+
+        @keyframes flashBlue {
+            0% { background-color: #16acde; } /* Light blue */
+            50% { background-color: #16acde; }
+            100% { background-color: transparent; }
+        }
+
+        .flash-effect {
+            animation: flashBlue 3s; /* Run the animation */
+        }
+
+        .highlighted {
+            background-color: rgba(255, 255, 0, 0.5); /* Yellow with some transparency */
+        }
+
+        #save-button {
+            width: 167px;  /* Set a fixed width suitable for your needs */
+            transition: background-color 0.3s;  /* Smooth transition for background color change */
+        }
+
+        .labelColorButton {
+            width: 26px !important;
+            height: 27px !important;
+            border-radius: 6px !important;
+            margin-right: 5px !important;
+            margin-top: 0px !important;
+            padding: 9px !important;
+            cursor: pointer !important;
+        }
+
+        .removeButton {
+            background-color: #333 !important;
+            color: white;
+            border: none !important;
+            padding: 0px 10px !important;
+            border-radius: 4px !important;
+            cursor: pointer;
+            margin-top: 0px !important;
+            margin-left: 5px !important;
+            width: auto !important;
+        }
+
+        .color-botton {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        #dialogBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            width: 700px;
+            font-family: Arial, sans-serif;
+        }
+        
+        #dialogBox input[type="text"] {
+            width: 96%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .button-container{
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+
+        .button-container button{
+            width: 100%;
+        }
+
+        .dialog-box input[type="text"] {
+            width: 100%;
+            margin-bottom: 5px;
+            min-height: 30px;
+        }
+
+        #closeColorPickerModal{
+            position: relative;
+            border-radius: 10px 0 0 0;
+            width: 40px;
+            height: 35px;
+            background-color: orangered;
+            color: white;
+            border-color: transparent;
+        }
+
+    </style>
+    <script>
+        var data = {{ data|tojson }};
+        var label2color = {{ label2color|safe }};
+        var model_path = {{ model_path|tojson }};
+        var auth_token = {{ auth_token|tojson }};
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+</head>
+<body>
+    <div id="header">
+        <div id="logo-area">
+            <a id="homebtn" href="/" style="text-decoration: none; color: black;">
+                <i class="fas fa-home"></i>
+            </a>
+            <h1 id="header-title">Reviewing Tool</h1>
+        </div>
+        <div class="header-buttons">
+            <button class="header-button" id="zoomin-button" onclick="zoomIn()">
+                <i class="fas fa-search-plus"></i>
+            </button>
+            <button class="header-button" id="zoomout-button" onclick="zoomOut()">
+                <i class="fas fa-search-minus"></i>
+            </button>
+            <button class="header-button" id="setup-button" onclick="setupDialog()">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button class="header-button" id="ocr-button" onclick="performOCR()">Perform OCR</button>
+            <button class="header-button" id="predict-button" onclick="predictLabels()">Predict Labels</button>
+            <button class="header-button" id="save-button" onclick="saveCurrentImage()">Save As Reviewed</button>
+        </div>
+    </div>
+    <div id="main-content">
+        <div style="padding-right: 10px; background: #f0f0f0;">
+            <div id="image-list">
+                <!-- list of images, left panel -->
+            </div>
+        </div>
+        <div id="image-container" style="overflow: auto; scrollbar-width: none;">
+            <div id="image-display">
+                <!-- Image and rectangles go here -->
+            </div>
+        </div>
+        <div id="right-panel">
+            <div class="sort-options">
+                <div class="title">Sort:</div>
+                <label>
+                    <input type="radio" name="sort" value="in-order" checked="checked"> In order
+                </label>
+                <label>
+                    <input type="radio" name="sort" value="conflicts-first"> Conflicts first
+                </label>
+            </div>
+            <div id="word-list">
+                <!-- word list, right panel -->
+            </div>
+        </div>
+        <div id="colorPickerModal" style="display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 10000; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">
+            <button id="closeColorPickerModal" style="position: relative;">X</button>
+            <div id="colorOptions" style="display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px;">
+                <!-- Color options will be populated here -->
+            </div>
+        </div>
+    </div>
+    <script>
+        var currentImageName = '';
+        var inOrder = true;
+        var zoomScale = 1; // Initial zoom level
+        const ZOOM_STEP = 0.1; // How much to zoom in or out
+        const colors = ['darkblue', 'dodgerblue', 'aqua', 'turquoise','violet','DeepPink', 'darkviolet', 'MediumSlateBlue', 'maroon', 'Peru', 'lightcoral', 'darkorange', 'OrangeRed', 'khaki', 'gold', 'olivedrab', 'YellowGreen', 'lime'];
+        let availableColors = [...colors];
+        var isLabelVisible = true;
+        var isRectangleVisible = true;
+
+        function selectImage(imageName) {
+            currentImageName = imageName;
+            const display = document.getElementById('image-display');
+            display.innerHTML = `<img src="uploads/images/${imageName}" alt="${imageName}">`;
+
+            const img = display.querySelector('img'); // Get the image element directly
+
+            img.onload = () => {
+                const imageWords = data[imageName] || {};
+
+                fetch(`/review/get-image-data/${imageName}`)
+                    .then(response => response.json())
+                    .then(imageData => {
+                        data[imageName] = imageData;
+                        populateWordList(imageData); // Populate after the image is loaded
+                        drawRectangles(imageData); // Draw rectangles after the image is loaded
+                    })
+                    .catch(error => console.error('Error loading the image data:', error));
+            };
+        }
+
+        function performOCR() {
+            const imageName = currentImageName;
+            const ocrButton = document.getElementById('ocr-button');
+            ocrButton.textContent = 'Performing...';
+
+            fetch(`/review/perform-ocr/${imageName}`, {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('OCR complete, data saved:', data.message);
+                ocrButton.textContent = 'Perform OCR';
+                selectImage(imageName)
+            })
+            .catch(error => {
+                console.error('Error performing OCR:', error);
+                ocrButton.textContent = 'Perform OCR';  // Reset button text on error
+            });
+        }
+
+        function predictLabels() {
+            const imageName = currentImageName;
+            const predictButton = document.getElementById('predict-button');
+            predictButton.textContent = 'Predicting...';
+
+            fetch(`/review/predict-labels/${imageName}`, {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('predicting labels complete, data saved:', data.message);
+                predictButton.textContent = 'Predict Labels';
+                selectImage(imageName)
+            })
+            .catch(error => {
+                console.error('Error predicting labels:', error);
+                predictButton.textContent = 'Predict Labels';  // Reset button text on error
+            });
+        }
+        
+        function attachClickHandlerToRectangle(rectangle, index) {
+            rectangle.setAttribute('data-word-id', `word-${index}`);
+            rectangle.addEventListener('click', () => {
+                const wordItem = document.getElementById(`word-item-${index}`);
+                if (wordItem) {
+                    wordItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    wordItem.classList.add('flash-effect');
+                    setTimeout(() => {
+                        wordItem.classList.remove('flash-effect');
+                    }, 1000); // Adjust this time if needed
+                }
+            });
+        }
+
+        function drawRectangles(imageData) {
+            const image = document.querySelector('#image-display img');
+            const scaleFactor = image.clientWidth / image.naturalWidth;
+            document.querySelectorAll('.rectangle').forEach(rect => rect.remove());
+            document.querySelectorAll('.label-rect').forEach(rect => rect.remove());
+
+            // Create a hidden span to measure text width
+            const measureSpan = document.createElement('span');
+            measureSpan.style.visibility = 'hidden';
+            measureSpan.style.position = 'absolute';
+            measureSpan.style.height = 'auto';
+            measureSpan.style.width = 'auto';
+            measureSpan.style.whiteSpace = 'nowrap';
+            measureSpan.style.fontSize = '10px'; // Match font size of labelRect
+            document.body.appendChild(measureSpan);
+
+            imageData.forEach((item, index) => {
+                const [xmin, ymin, xmax, ymax] = item.coords;
+                const correctLabel = item.correctLabel;
+                const labelAreSame = item.labelAreSame;
+                const rect = document.createElement('div');
+                rect.className = 'rectangle';
+                rect.setAttribute('data-word-id', `word-${index}`);
+                
+                // Use label2color mapping for same labels, default to a neutral color if not found
+                //const borderColor = labelAreSame ? (label2color[correctLabel] || 'grey') : 'red';
+                const borderColor = label2color[correctLabel] || '#ccc';
+                const borderWidth = correctLabel === 'others' ? '1px' : '2px';
+                const backgroundColor = labelAreSame ? 'transparent' : 'rgba(255, 0, 0, 0.3)';  // Light red with transparency
+
+                rect.style.border = `${borderWidth} solid ${borderColor}`;
+                rect.style.backgroundColor = backgroundColor;  // Set background color with transparency for differences
+                rect.style.left = `${(xmin * scaleFactor) - 1}px`;
+                rect.style.top = `${(ymin * scaleFactor) - 1}px`;
+                rect.style.width = `${(xmax - xmin) * scaleFactor}px`;
+                rect.style.height = `${(ymax - ymin) * scaleFactor}px`;
+                rect.style.display = isRectangleVisible ? 'block' : 'none';
+
+                // Label rectangle
+                const labelRect = document.createElement('div');
+                labelRect.className = 'label-rect';
+                labelRect.setAttribute('data-word-id', `word-${index}`);
+                labelRect.style.backgroundColor = !labelAreSame ? 'red' : borderColor;
+                labelRect.style.color = 'white';
+                labelRect.style.fontSize = '8px';
+                labelRect.style.position = 'absolute';
+                labelRect.style.left = `${(xmin * scaleFactor) - 1}px`;
+                labelRect.style.top = `${(ymin * scaleFactor) - 9}px`; // Adjusted to be above main rectangle
+                labelRect.style.display = isLabelVisible ? 'block' : 'none';
+                
+                // Measure the text width and set label rectangle width accordingly
+                measureSpan.textContent = correctLabel;
+                let textWidth = measureSpan.offsetWidth; // Extra space for padding
+                let maxWidth = (xmax - xmin) * scaleFactor; // Max width based on main rectangle
+                if (textWidth > maxWidth) {
+                    labelRect.style.width = `${maxWidth}px`;
+                    labelRect.textContent = correctLabel.substr(0, correctLabel.length * maxWidth / textWidth); // Shorten text
+                } else {
+                    labelRect.style.width = `${textWidth}px`;
+                    labelRect.textContent = correctLabel;
+                }
+
+                labelRect.style.height = '8px';
+
+                document.getElementById('image-display').appendChild(rect);
+                if (correctLabel !== 'others' || !labelAreSame){
+                    document.getElementById('image-display').appendChild(labelRect);
+                }
+
+                attachClickHandlerToRectangle(rect, index);
+                //document.getElementById('image-display').appendChild(rect);
+            });
+        }
+
+        function updateRectangle(index) {
+            const image = document.querySelector('#image-display img');
+            const scaleFactor = image.clientWidth / image.naturalWidth;
+
+            const imageName = currentImageName;
+            const item = data[imageName][index];
+            const [xmin, ymin, xmax, ymax] = item.coords;
+            const correctLabel = item.correctLabel;
+            const labelAreSame = item.labelAreSame;
+            
+
+            // Remove the existing rectangles for this index
+            document.querySelector(`.rectangle[data-word-id="word-${index}"]`).remove();
+            document.querySelector(`.label-rect[data-word-id="word-${index}"]`)?.remove();
+
+            const rect = document.createElement('div');
+            rect.className = 'rectangle';
+            rect.setAttribute('data-word-id', `word-${index}`);
+
+            const borderColor = label2color[correctLabel] || '#ccc';
+            const borderWidth = correctLabel === 'others' ? '1px' : '2px';
+            const backgroundColor = labelAreSame ? 'transparent' : 'rgba(255, 0, 0, 0.3)';  // Light red with transparency
+
+            rect.style.border = `${borderWidth} solid ${borderColor}`;
+            rect.style.left = `${(xmin * scaleFactor) - 1}px`;
+            rect.style.top = `${(ymin * scaleFactor) - 1}px`;
+            rect.style.width = `${((xmax - xmin) * scaleFactor)}px`;
+            rect.style.height = `${((ymax - ymin) * scaleFactor)}px`;
+            rect.style.display = isRectangleVisible ? 'block' : 'none';
+
+            // Label rectangle
+            const labelRect = document.createElement('div');
+            labelRect.className = 'label-rect';
+            labelRect.setAttribute('data-word-id', `word-${index}`); // Track this by index too
+            labelRect.style.backgroundColor = !labelAreSame ? 'red' : borderColor;
+            labelRect.style.color = 'white';
+            labelRect.style.fontSize = '8px';
+            labelRect.style.position = 'absolute';
+            labelRect.style.left = `${(xmin * scaleFactor) - 1}px`;
+            labelRect.style.top = `${(ymin * scaleFactor) - 9}px`; // Adjusted to be above main rectangle
+            labelRect.style.display = isLabelVisible ? 'block' : 'none';
+
+            // Measure the text width
+            const measureSpan = document.createElement('span');
+            measureSpan.style.visibility = 'hidden';
+            measureSpan.style.position = 'absolute';
+            measureSpan.style.height = 'auto';
+            measureSpan.style.width = 'auto';
+            measureSpan.style.whiteSpace = 'nowrap';
+            measureSpan.style.fontSize = '10px';
+            measureSpan.textContent = correctLabel;
+            document.body.appendChild(measureSpan);
+
+            let textWidth = measureSpan.offsetWidth;
+            let maxWidth = (xmax - xmin) * scaleFactor;
+
+            if (textWidth > maxWidth) {
+                labelRect.style.width = `${maxWidth}px`;
+                labelRect.textContent = correctLabel.substr(0, correctLabel.length * maxWidth / textWidth) + '...';
+            } else {
+                labelRect.style.width = `${textWidth}px`;
+                labelRect.textContent = correctLabel;
+            }
+
+            labelRect.style.height = '8px';
+
+            document.getElementById('image-display').appendChild(rect);
+            if (correctLabel !== 'others' || !labelAreSame){
+                document.getElementById('image-display').appendChild(labelRect);
+            }
+
+            attachClickHandlerToRectangle(rect, index);
+
+            document.body.removeChild(measureSpan);
+        }
+
+        function populateImageList() {
+            const imageList = document.getElementById('image-list');
+            imageList.innerHTML = ''; // Clear the list first
+
+            Object.keys(data).forEach((imageName, index) => {
+                const imageDiv = document.createElement('div');
+                imageDiv.className = 'image-name';
+                // Append the index and format the image name
+                imageDiv.innerText = `${index + 1}- ${imageName}`;
+                imageDiv.onclick = function() { 
+                    selectImage(imageName); 
+                    highlightSelectedImage(imageName);
+                };
+                imageList.appendChild(imageDiv);
+            });
+
+            // Automatically select and highlight the first image if available
+            if (Object.keys(data).length > 0) {
+                selectImage(Object.keys(data)[0]);
+                highlightSelectedImage(Object.keys(data)[0]);
+            }
+        }
+
+        function highlightSelectedImage(selectedImageName) {
+            // Remove highlights from all image names
+            document.querySelectorAll('.image-name').forEach(div => {
+                div.classList.remove('selected');
+            });
+
+            // Find the div that matches the selected image and add the highlight class
+            Array.from(document.querySelectorAll('.image-name')).forEach(div => {
+                if (div.innerText.includes(selectedImageName)) {
+                    div.classList.add('selected');
+                }
+            });
+        }
+        
+        function updateCorrectLabel(index, newLabel) {
+            const imageName = currentImageName; // You need a way to know which image is currently displayed
+            const currentData = data[imageName][index];
+            if (currentData) {
+                currentData.correctLabel = newLabel; // Update the correct label in the data
+                //currentData.labelAreSame = (newLabel === currentData.labels[0]); // Check if the new label matches the annotation label
+            }
+            updateRectangle(index)
+        }
+
+        function updateWordList(index) {
+            const wordItem = document.getElementById(`word-item-${index}`);
+            if (!wordItem) {
+                console.log("Word item not found");
+                return; // Safeguard in case the element doesn't exist
+            }
+
+            // Assuming 'words' is accessible globally or passed when needed
+            const item = data[currentImageName][index];
+            const labels = item.labels;
+            const correctLabel = item.correctLabel;
+
+            let labelsHTML = labels.map(label => `
+                <label>
+                    <input type="radio" name="label-${index}" value="${label}" ${label === correctLabel ? 'checked' : ''} onchange="updateCorrectLabel('${index}', '${label}')"/> ${label}
+                </label>
+            `).join('');
+
+            // Update the labels container for this word
+            const labelsContainer = document.getElementById(`labels-container-${index}`);
+            labelsContainer.innerHTML = '';
+            labelsContainer.innerHTML = labelsHTML;
+        }
+
+        function updateDataWithNewLabel(index, newLabel) {
+            const imageName = currentImageName;
+            if (data[imageName] && data[imageName][index]) {
+                if (!data[imageName][index].labels.includes(newLabel)) {
+                    data[imageName][index].labels.push(newLabel);
+                }
+                //data[imageName][index].labels.push(newLabel);
+                // Optionally update the correctLabel if needed
+            }
+        }
+
+        function addNewLabel(index) {
+            const labelsContainer = document.getElementById(`labels-container-${index}`);
+            const newLabelInput = document.createElement('input');
+            newLabelInput.type = 'text';
+            newLabelInput.placeholder = 'Enter new label';
+            newLabelInput.onkeypress = function(event) {
+                if (event.key === 'Enter' && newLabelInput.value.trim() !== '') {
+                    const newLabel = newLabelInput.value.trim();
+
+                    // Create the new label element and radio button
+                    const newLabelElement = document.createElement('label');
+                    newLabelElement.innerHTML = `
+                        <input type="radio" name="label-${index}" value="${newLabel}" onchange="updateCorrectLabel('${index}', '${newLabel}')" checked/> ${newLabel}
+                    `;
+                    labelsContainer.appendChild(newLabelElement);
+                    
+                    // This function call should update the data on the server or in the local model
+                    updateDataWithNewLabel(index, newLabel);
+
+                    // Select the newly created radio button
+                    newLabelElement.querySelector('input[type="radio"]').checked = true;
+
+                    // Optionally remove the input after adding the label
+                    newLabelInput.remove();
+
+                    // Update the correct label in the data model to the new label
+                    updateCorrectLabel(index, newLabel);
+                }
+            };
+            labelsContainer.appendChild(newLabelInput);
+            newLabelInput.focus(); // Focus the new input field
+        }
+        
+        function updateWord(index, newWord) {
+            const imageName = currentImageName;
+            if (data[imageName] && data[imageName][index]) {
+                data[imageName][index].word = newWord; // Update the word in the data model
+            }
+        }
+
+        function deleteWord(index) {
+            const imageName = currentImageName; // Get the current image name
+            const currentData = data[imageName]; // Access the data associated with the current image
+
+            if (currentData && currentData[index]) {
+                // Remove the word from the data model
+                currentData.splice(index, 1); // Removes the word at the specified index
+
+                // Update the remaining words' indices
+                currentData.forEach((item, idx) => {
+                    item.index = idx; // Ensure all indices reflect their new positions
+                });
+
+                // Remove the word from the DOM
+                const wordItem = document.getElementById(`word-item-${index}`);
+                if (wordItem) {
+                    wordItem.remove(); // Remove it from the display
+                }
+
+                // Repopulate the word list to reflect the new order
+                populateWordList(currentData); // Optionally refreshes the entire display
+                drawRectangles(currentData)
+            }
+        }
+
+        function populateWordList(words, inOrder) {
+            const wordList = document.getElementById('word-list');
+            wordList.innerHTML = '';
+            inOrder = true;
+            // Sort words based on 'labelAreSame' when 'inOrder' is false
+            if (!inOrder) {
+                words.sort((a, b) => {
+                    if (a.labelAreSame === b.labelAreSame) return 0;
+                    return a.labelAreSame ? 1 : -1;
+                });
+            }
+            else{
+                words.sort((a, b) => a.index - b.index);
+            }
+            
+            words.forEach((item, index) => {
+                const word = item.word;
+                const labels = item.labels;
+                const correctLabel = item.correctLabel;
+                const coords = item.coords;
+                const wordDiv = document.createElement('div');
+                wordDiv.className = 'word-item';
+                wordDiv.id = `word-item-${index}`;
+                wordDiv.style.backgroundColor = item.labelAreSame ? 'white' : '#ffcccc';
+
+                let labelsHTML = labels.map(label => `
+                    <label>
+                        <input type="radio" name="label-${index}" value="${label}" ${label === correctLabel ? 'checked' : ''} onchange="updateCorrectLabel('${index}', '${label}')"/> ${label}
+                    </label>
+                `).join('');
+
+                wordDiv.innerHTML = `
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" value="${word}" class="word-editable" onchange="updateWord(${index}, this.value)"/>
+                        <button onclick="addNewLabel(${index})">+</button>
+                        <button class="word-delete" onclick="deleteWord(${index})">X</button>
+                    </div>
+                    <div id="labels-container-${index}">
+                        ${labelsHTML}
+                    </div>
+                `;
+                wordList.appendChild(wordDiv);
+
+                // Add double-click event listener to flash the rectangle
+                wordDiv.addEventListener('dblclick', () => {
+                    flashRectangle(index);
+                });
+            });
+        }
+
+        function flashRectangle(index) {
+            const rect = document.querySelector(`div[data-word-id="word-${index}"]`);
+            if (!rect) return;
+
+            // Flash the rectangle by toggling a CSS class
+            const flashTimes = 2; // Number of times to flash
+            const interval = 1000; // Interval in milliseconds
+
+            let isHighlighted = false; // Track the current style state
+
+            for (let i = 0; i < flashTimes; i++) {
+                setTimeout(() => {
+                    if (isHighlighted) {
+                        // Reset to original styles
+                        rect.style.backgroundColor = 'transparent'; // Assuming original is transparent
+                        //rect.style.border = '2px solid red'; // Assuming original border style
+                    } else {
+                        // Apply highlighted styles
+                        rect.style.backgroundColor = 'red'; // Yellow with some transparency
+                        //rect.style.border = '2px solid yellow'; // Change border to match
+                    }
+                    isHighlighted = !isHighlighted; // Toggle state
+                }, i * interval);
+            }
+        }
+
+        function setupDrawing() {
+            const imageContainer = document.getElementById('image-display');
+            let startX, startY, isDrawing = false, isSelecting = false;
+            let selectedRectangles = []; // Keep track of selected rectangles
+            let selectionRect;
+
+            imageContainer.addEventListener('mousedown', function(e) {
+                selectedRectangles = [];
+                // Check if Command (metaKey) or Control (ctrlKey) is pressed
+                if (!e.metaKey && !e.ctrlKey && !e.shiftKey) return;
+
+                e.preventDefault();
+                const bounds = this.getBoundingClientRect();
+                startX = (e.clientX - bounds.left) / zoomScale;  // Adjust for zoom
+                startY = (e.clientY - bounds.top) / zoomScale;  // Adjust for zoom
+                
+                rect = document.createElement('div');
+                if (e.metaKey || e.ctrlKey) {
+                    isDrawing = true;
+                    rect.className = 'rectangle';
+                }
+                else if (e.shiftKey) {
+                    isSelecting = true
+                    rect.className = 'rectangle-selection';
+                }
+                rect.style.left = `${startX}px`;
+                rect.style.top = `${startY}px`;
+                imageContainer.appendChild(rect);
+            });
+
+            imageContainer.addEventListener('mousemove', function(e) {
+                // Continue to check if Command or Control is pressed during mousemove
+                if ((!isDrawing || (!e.metaKey && !e.ctrlKey)) && (!isSelecting || !e.shiftKey)) return;
+                
+                
+                const bounds = this.getBoundingClientRect();
+                const currentX = (e.clientX - bounds.left) / zoomScale; // Adjust for zoom
+                const currentY = (e.clientY - bounds.top) / zoomScale; // Adjust for zoom
+                const width = Math.abs(currentX - startX);
+                const height = Math.abs(currentY - startY);
+                rect.style.width = `${width}px`;
+                rect.style.height = `${height}px`;
+                rect.style.left = `${Math.min(startX, currentX)}px`;
+                rect.style.top = `${Math.min(startY, currentY)}px`;
+            });
+
+            imageContainer.addEventListener('mouseup', function(e) {
+                if (!e.metaKey && !e.ctrlKey && !e.shiftKey) return;
+
+                if (isDrawing){
+                    finalizeDrawingRectangle();
+                }
+                else if (isSelecting){
+                    console.log('mouseup', isSelecting);
+                    selectRectanglesUnderSelection();
+                    isSelecting = false;
+                }
+                e.stopPropagation();  // Prevent triggering any other click events
+            });
+
+            imageContainer.addEventListener('mouseleave', function() {
+                if (isDrawing) {
+                    finalizeDrawingRectangle();
+                }
+                // If selecting, finalize the selection logic as well
+                if (isSelecting) {
+                    selectRectanglesUnderSelection();
+                    isSelecting = false;
+                }
+            });
+
+            function finalizeDrawingRectangle() {
+                if (!isDrawing) return;
+                
+                // Get the image and calculate the scale factor
+                const image = document.querySelector('#image-display img');
+                const scaleFactor = image.naturalWidth / image.clientWidth;
+
+                // Adjust coordinates with the scale factor
+                const adjustedXmin = parseInt(parseInt(rect.style.left, 10) * scaleFactor);
+                const adjustedYmin = parseInt(parseInt(rect.style.top, 10) * scaleFactor);
+                const adjustedXmax = parseInt((parseInt(rect.style.width, 10) + parseInt(rect.style.left, 10)) * scaleFactor);
+                const adjustedYmax = parseInt((parseInt(rect.style.height, 10) + parseInt(rect.style.top, 10)) * scaleFactor);
+
+                const newIndex = data[currentImageName] ? data[currentImageName].length : 0;
+                const newAnnotation = {
+                    index: newIndex,
+                    word: '',
+                    coords: [
+                        adjustedXmin,
+                        adjustedYmin,
+                        adjustedXmax,
+                        adjustedYmax
+                    ],
+                    labels: ['others'],  // default label
+                    correctLabel: 'others',
+                    labelAreSame: true
+                };
+
+                data[currentImageName].push(newAnnotation);
+                isDrawing = false;
+                attachClickHandlerToRectangle(rect, newIndex);  
+                populateWordList(data[currentImageName], inOrder);  // Update the word list
+                
+            }
+
+            function openDialogBox(selectedRectangles) {
+                const dialogBox = document.createElement('div');
+                dialogBox.classList.add('dialog-box');
+                document.body.appendChild(dialogBox);
+
+                const title = document.createElement('h2');
+                title.textContent = 'Please select among the labels';
+                dialogBox.appendChild(title);
+
+                const inputField = document.createElement('input');
+                inputField.type = 'text';
+                inputField.placeholder = 'Type to filter labels...';
+                inputField.classList.add('filter-input'); // Add a class for potential styling
+                dialogBox.appendChild(inputField);
+
+                // Create a container for the labels
+                const labelContainer = document.createElement('div');
+                dialogBox.appendChild(labelContainer);
+
+                // Function to update the labels displayed in the container
+                function updateLabelsLive(filterText = '') {
+                    labelContainer.innerHTML = ''; // Clear the current labels
+
+                    let visibleLabelsCount = 0; // Track the number of visible labels after filtering
+                    let singleRadioButton; // To hold the radio button when only one is visible
+
+                    // Add labels based on label2color keys that match the filter text
+                    Object.keys(label2color).forEach(option => {
+                        if (option.toLowerCase().includes(filterText.toLowerCase())) {
+                            const label = document.createElement('label');
+                            const radioButton = document.createElement('input');
+                            radioButton.type = 'radio';
+                            radioButton.name = 'options';
+                            radioButton.value = option;
+                            label.appendChild(radioButton);
+                            label.appendChild(document.createTextNode(option));
+                            labelContainer.appendChild(label);
+
+                            visibleLabelsCount++; // Increment count for each label added
+                            singleRadioButton = radioButton; // Store the single radio button reference
+                        }
+                    });
+
+                    // If there's exactly one label visible after filtering, automatically select it
+                    if (visibleLabelsCount === 1 && singleRadioButton) {
+                        singleRadioButton.checked = true;
+                    }
+                }
+
+                // Initial population of labels
+                updateLabelsLive();
+
+                // Event listener for filtering labels based on user input
+                inputField.addEventListener('input', (event) => {
+                    const filterText = event.target.value;
+                    updateLabelsLive(filterText);
+                });
+
+                const cleanup = () => {
+                    document.removeEventListener('keydown', handleEnterKey);
+                };
+
+                // container containing the buttons (confirm/cancel)
+                const buttonContainer = document.createElement('div');
+                buttonContainer.classList.add('button-container'); 
+
+                const confirmButton = document.createElement('button');
+                confirmButton.textContent = 'Confirm';
+                confirmButton.onclick = () => {
+                    const selectedOption = document.querySelector('input[name="options"]:checked');
+                    if (selectedOption) {
+                        const selectedLabel = selectedOption.value;
+                        selectedRectangles.forEach(index => {
+                            updateDataWithNewLabel(index, selectedLabel);
+                            updateCorrectLabel(index, selectedLabel);
+                            //populateWordList(data[currentImageName], inOrder);
+                            updateWordList(index);
+                        });
+                    }
+                    dialogBox.remove(); // This will remove the dialog box and all its children
+                };
+
+                inputField.focus();
+
+                const cancelButton = document.createElement('button');
+                cancelButton.textContent = 'Cancel';
+                cancelButton.onclick = () => dialogBox.remove(); // Ensure dialog box is removed on cancel
+
+                buttonContainer.appendChild(confirmButton);
+                buttonContainer.appendChild(cancelButton);
+                
+                dialogBox.appendChild(buttonContainer);
+
+                function handleEnterKey(event) {
+                    if (event.key === 'Enter') {
+                        confirmButton.onclick(); // Call confirm action directly
+                    }
+                    else if (event.key === 'Escape') {
+                        cancelButton.onclick(); // Call confirm action directly
+                    }
+                }
+                
+                document.addEventListener('keydown', handleEnterKey);
+            }
+
+
+            function selectRectanglesUnderSelection(){
+                // Get the image and calculate the scale factor
+                const image = document.querySelector('#image-display img');
+                const scaleFactor = image.naturalWidth / image.clientWidth;
+
+                // Convert selectionRect bounds to the original image scale
+                const selectionBounds = {
+                            left: parseInt(parseInt(rect.style.left) * scaleFactor),
+                            top: parseInt(parseInt(rect.style.top) * scaleFactor),
+                            right: parseInt((parseInt(rect.style.left) + parseInt(rect.style.width)) * scaleFactor),
+                            bottom: parseInt((parseInt(rect.style.top) + parseInt(rect.style.height)) * scaleFactor),
+                        };
+
+                
+                // Go through each rectangle in `data` and see if it falls within the selectionBounds
+                // If it does, add it to `selectedRectangles` and change its appearance
+                data[currentImageName].forEach((annotation, index) => {
+                    const { coords } = annotation;
+                    // Check if the rectangle is within the selection bounds
+                    if (coords[0] >= selectionBounds.left && coords[2] <= selectionBounds.right &&
+                        coords[1] >= selectionBounds.top && coords[3] <= selectionBounds.bottom) {
+                        selectedRectangles.push(index);
+                    }
+                });
+                openDialogBox(selectedRectangles)
+
+                // Remove selection rectangle
+                imageContainer.removeChild(rect);
+            }
+        }
+
+        function sortWordsOptionHandler() {
+            document.querySelectorAll('input[name="sort"]').forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    // Update inOrder based on the selected option
+                    inOrder = this.value === 'in-order';
+                    // Call populateWordList with the current image's data and the new sort order
+                    if (data[currentImageName]) {
+                        populateWordList(data[currentImageName], inOrder);
+                    }
+                });
+            });
+        }
+
+        function saveCurrentImage() {
+            const imageName = currentImageName;
+            const imageData = data[imageName];
+
+            const saveButton = document.getElementById('save-button');
+            saveButton.textContent = 'Saving...';
+
+            fetch('/review/save-image-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    imageName: imageName,
+                    imageData: imageData,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+
+                // Change text and background color to indicate success
+                saveButton.textContent = 'Saved!';
+                saveButton.style.backgroundColor = 'green';
+
+                // Reset text and background color after 2 seconds
+                setTimeout(() => {
+                    saveButton.textContent = 'Save As Reviewed';
+                    saveButton.style.backgroundColor = '';  /* Reset to original color */
+                }, 2000);  // 2 seconds delay
+            })
+            .catch(error => {
+                console.error('Error:', error);
+
+                // Reset button text on error
+                saveButton.textContent = 'Save As Reviewed';
+            });
+        }
+
+        function populateColorOptions() {
+            const colorOptions = document.getElementById('colorOptions');
+            colors.forEach(color => {
+                let colorBox = document.createElement('div');
+                colorBox.className = 'color-botton'
+                colorBox.style.backgroundColor = color;
+                colorBox.onclick = function() {
+                    selectColor(color);
+                };
+                colorOptions.appendChild(colorBox);
+            });
+
+            document.getElementById('closeColorPickerModal').addEventListener('click', function() {
+                document.getElementById('colorPickerModal').style.display = 'none'; // Hide the modal
+            });
+        }
+
+        function selectColor(color) {
+            currentColorButton.style.backgroundColor = color;
+            colorPickerModal.style.display = 'none'; // Hide the modal
+        }
+
+        function getRandomColor() {
+            if (availableColors.length === 0) {
+                // Reset the availableColors if all have been used
+                availableColors = [...colors];
+            }
+            // Select a random color from availableColors
+            const colorIndex = Math.floor(Math.random() * availableColors.length);
+            const color = availableColors[colorIndex];
+
+            // Remove the selected color from availableColors
+            availableColors.splice(colorIndex, 1);
+
+            return color;
+        }
+
+        function changeColor(labelItem, colorButton) {
+            // Create dropdown or popup for color selection
+            let colorPicker = document.createElement('select');
+            colors.forEach(color => {
+                let option = document.createElement('option');
+                option.value = color;
+                option.style.backgroundColor = color;
+                option.textContent = color.charAt(0).toUpperCase() + color.slice(1); // Capitalize first letter
+                colorPicker.appendChild(option);
+            });
+            colorPicker.value = colorButton.style.backgroundColor;
+            colorPicker.onchange = function() {
+                colorButton.style.backgroundColor = this.value;
+                labelItem.dataset.color = this.value; // Save the selected color
+            };
+            colorButton.parentNode.insertBefore(colorPicker, colorButton);
+            colorButton.remove(); // Remove the initial button after dropdown creation
+        }
+
+        let currentColorButton; // This will reference the button that was clicked
+
+        function addLabelItem(labelName, color) {
+            const labelsContainer = document.getElementById('labelsContainer');
+            const labelItem = document.createElement('div');
+            labelItem.className = 'labelItem';
+            labelItem.textContent = labelName;
+            labelItem.style.display = 'inline-block';
+            labelItem.style.alignItems = 'center';
+            labelItem.style.justifyContent = 'space-between';
+            labelItem.style.border = '1px solid #ddd';
+            labelItem.style.borderRadius = '4px';
+            labelItem.style.marginRight = '2px';
+            labelItem.style.marginBottom = '5px';
+            labelItem.style.padding = '5px';
+
+            const colorButton = document.createElement('button');
+            colorButton.className = 'labelColorButton';
+            colorButton.style.backgroundColor = color || 'black'; // Use provided color or default to black
+
+            colorButton.onclick = function() {
+                currentColorButton = this; // Set the current button
+                document.getElementById('colorPickerModal').style.display = 'block'; // Show the modal
+            };
+
+            const removeButton = document.createElement('button');
+            removeButton.className = 'removeButton';
+            removeButton.textContent = 'remove';
+            removeButton.onclick = function() {
+                labelsContainer.removeChild(labelItem);
+            };
+
+            labelItem.insertBefore(colorButton, labelItem.firstChild);
+            labelItem.appendChild(removeButton);
+            labelsContainer.appendChild(labelItem);
+        }
+
+        function preprocessInput(input) {
+            // Replace single quotes with double quotes
+            let jsonInput = input.replace(/'/g, '"');
+
+            // Ensure numerical keys are quoted
+            jsonInput = jsonInput.replace(/(\d+):/g, '"$1":');
+
+            return jsonInput;
+        }
+
+        function setupDialog() {
+            
+            const dialogBox = document.createElement('div');
+            dialogBox.id = 'dialogBox';
+            dialogBox.className = 'dialog-box';
+
+            const title = document.createElement('h2');
+            title.textContent = 'Tool Setup';
+            title.style.width = '100%';
+
+            const modelPathLabel = document.createElement('label');
+            modelPathLabel.textContent = 'Model path (optional):';
+            modelPathLabel.style.width = '100%';
+            
+
+            const modelPathInput = document.createElement('input');
+            modelPathInput.type = 'text';
+            modelPathInput.id = 'modelPathInput';
+            modelPathInput.placeholder = 'e.g., DataIntelligenceTeam/pharma_label_v3.2';
+            modelPathInput.style.width = '100%';
+
+            if (model_path && model_path.trim() !== '') {
+                modelPathInput.value = model_path; // Set the value if not null/empty
+            }
+
+            const tokenLabel = document.createElement('label');
+            tokenLabel.textContent = 'HuggingFace auth token (optional):';
+            tokenLabel.style.width = '100%';
+
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'text';
+            tokenInput.id = 'tokenInput';
+            tokenInput.placeholder = 'e.g., hf_SjdOoKPxrQWzIbUXxkY...';
+            tokenInput.style.width = '100%';
+
+            if (auth_token && auth_token.trim() !== '') {
+                tokenInput.value = auth_token; // Set the value if not null/empty
+            }
+
+            const labelsLabel = document.createElement('label');
+            labelsLabel.textContent = 'Labels:';
+            labelsLabel.style.width = '100%';
+
+            const labelsContainer = document.createElement('div');
+            labelsContainer.id = 'labelsContainer';
+            labelsContainer.style.marginTop = '10px';
+            labelsContainer.style.border = '1px solid #ccc';
+            labelsContainer.style.padding = '10px';
+            labelsContainer.style.borderRadius = '6px';
+            labelsContainer.style.height = '150px';
+            labelsContainer.style.overflowY ='auto';
+    
+            const labelInput = document.createElement('input');
+            labelInput.type = 'text';
+            labelInput.id = 'labelInput';
+            labelInput.placeholder = 'Enter label name and press Enter';
+
+            labelInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    const rawInput = labelInput.value.trim();
+                    labelInput.value = ''; // Clear input after processing
+
+                    // Attempt to parse as JSON or fallback to plain text
+                    try {
+                        const preprocessedInput = preprocessInput(rawInput); // Ensure this function properly escapes and formats input
+                        const parsedData = JSON.parse(preprocessedInput);
+
+                        if (Array.isArray(parsedData)) {
+                            parsedData.forEach(labelName => addLabelItem(labelName, label2color[labelName] || getRandomColor()));
+                        } else if (typeof parsedData === 'object') {
+                            Object.values(parsedData).forEach(labelName => addLabelItem(labelName, label2color[labelName] || getRandomColor()));
+                        } else {
+                            addLabelItem(rawInput, label2color[rawInput] || getRandomColor());
+                        }
+                    } catch (e) {
+                        addLabelItem(rawInput, label2color[rawInput] || getRandomColor());
+                    }
+                }
+            });
+
+            const submitButton = document.createElement('button');
+            submitButton.textContent = 'Submit';
+            submitButton.style.width = 'auto';
+            submitButton.addEventListener('click', function() {
+                // Create a new form dynamically
+                const form = document.createElement('form');
+                form.action = '/review';
+                form.method = 'POST';
+
+                // Create hidden inputs to hold the data
+                const modelPathInputHidden = document.createElement('input');
+                modelPathInputHidden.type = 'hidden';
+                modelPathInputHidden.name = 'modelPath';
+                modelPathInputHidden.value = modelPathInput.value.trim();
+
+                const tokenInputHidden = document.createElement('input');
+                tokenInputHidden.type = 'hidden';
+                tokenInputHidden.name = 'token';
+                tokenInputHidden.value = tokenInput.value.trim();
+
+                const labels = Array.from(document.querySelectorAll('.labelItem')).map(label => {
+                    let labelText = '';
+                    Array.from(label.childNodes).forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                            labelText += node.textContent.trim();
+                        }
+                    });
+                    return {
+                        name: labelText,
+                        color: label.querySelector('.labelColorButton').style.backgroundColor
+                    };
+                });
+
+                const labelsInputHidden = document.createElement('input');
+                labelsInputHidden.type = 'hidden';
+                labelsInputHidden.name = 'labels';
+                labelsInputHidden.value = JSON.stringify(labels);
+
+                // Append the hidden inputs to the form
+                form.appendChild(modelPathInputHidden);
+                form.appendChild(tokenInputHidden);
+                form.appendChild(labelsInputHidden);
+
+                // Append the form to the document body temporarily
+                document.body.appendChild(form);
+
+                // Submit the form
+                form.submit();
+
+                // Clean up by removing the form after submission
+                document.body.removeChild(form);
+            });
+
+
+
+            const closeButton = document.createElement('button');
+            closeButton.className = 'closeButton';
+            closeButton.style.width = 'auto';
+            closeButton.textContent = 'Close';
+
+            closeButton.addEventListener('click', function() {
+                document.body.removeChild(dialogBox);
+            });
+
+            dialogBox.appendChild(title);
+            dialogBox.appendChild(modelPathLabel);
+            dialogBox.appendChild(modelPathInput);
+            dialogBox.appendChild(tokenLabel);
+            dialogBox.appendChild(tokenInput);
+            dialogBox.appendChild(labelsLabel);
+            dialogBox.appendChild(labelInput);
+            dialogBox.appendChild(labelsContainer);
+            dialogBox.appendChild(submitButton);
+            dialogBox.appendChild(closeButton);
+
+            document.body.appendChild(dialogBox);
+
+            for (const [labelName, color] of Object.entries(label2color)) {
+                addLabelItem(labelName, color);
+            }
+        }
+
+        function zoomIn() {
+            zoomScale += ZOOM_STEP;
+            applyZoom();
+        }
+
+        function zoomOut() {
+            if (zoomScale > ZOOM_STEP) { // Ensure there's a limit to how much you can zoom out
+                zoomScale -= ZOOM_STEP;
+                applyZoom();
+            }
+        }
+
+        function applyZoom() {
+            const imageDisplay = document.getElementById('image-display');
+            // Apply CSS transform to the whole container of the image and annotations
+            imageDisplay.style.transform = `scale(${zoomScale})`;
+            imageDisplay.style.transformOrigin = 'top left';
+        }
+
+        document.addEventListener('keydown', function(event) {
+            // Ignore keypresses originating from input, textarea, or contenteditable elements
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.isContentEditable) {
+                return; // Skip the keyboard shortcut functionality
+            }
+            if (event.key === '+') {
+                event.preventDefault();  // Prevent the default action to avoid any unwanted behavior
+                zoomIn();  // Call the zoom in function
+            }
+            if (event.key === '-') {
+                event.preventDefault();  // Prevent the default action to avoid any unwanted behavior
+                zoomOut();  // Call the zoom out function
+            }
+            if ((event.altKey || event.metaKey) && event.key === 's') {
+                event.preventDefault();  // Prevent any default behavior
+                saveCurrentImage();  // Call the function to save the current image
+            }
+            if ((event.altKey || event.metaKey) && event.key === 'o') {
+                event.preventDefault();  // Prevent any default behavior
+                performOCR();  // Call the function to save the current image
+            }
+            if ((event.altKey || event.metaKey) && event.key === 'p') {
+                event.preventDefault();  // Prevent any default behavior
+                predictLabels();  // Call the function to save the current image
+            }
+            if (event.key.toLowerCase() === 'h' ) {
+                isRectangleVisible = !isRectangleVisible; // Toggle visibility state for rectangles
+                const rectangles = document.querySelectorAll('.rectangle');
+                rectangles.forEach(rectangle => {
+                    rectangle.style.display = isRectangleVisible ? 'block' : 'none';
+                });
+            }
+            if (event.key.toLowerCase() === 'l' ) {
+                isLabelVisible = !isLabelVisible; // Toggle visibility state for labels
+                const labels = document.querySelectorAll('.label-rect');
+                labels.forEach(label => {
+                    label.style.display = isLabelVisible ? 'block' : 'none';
+                });
+            }
+            if (event.key.toLowerCase() === 'm' ) {
+                // Select the element with id 'right-panel'
+                const rightPanel = document.getElementById('right-panel');
+                rightPanel.style.display = rightPanel.style.display === 'none' ? '' : 'none';
+                drawRectangles(data[currentImageName])
+            }
+            if (event.key === 'ArrowRight') {
+                event.preventDefault(); // Prevent scrolling
+                const images = document.querySelectorAll('.image-name');
+                if (!images.length) return; // No images to navigate
+                let currentIndex = Array.from(images).findIndex(div => div.classList.contains('selected'));
+                currentIndex++;
+                if (currentIndex >= images.length) {
+                    currentIndex = 0; // Reset to the first image if at the end
+                }
+                images[currentIndex].click();
+            }
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault(); // Prevent scrolling
+                const images = document.querySelectorAll('.image-name');
+                if (!images.length) return; // No images to navigate
+                let currentIndex = Array.from(images).findIndex(div => div.classList.contains('selected'));
+                currentIndex--;
+                if (currentIndex < 0) {
+                    currentIndex = images.length - 1; // Loop to the last image if at the beginning
+                }
+                images[currentIndex].click();
+            }
+        });
+
+
+        document.addEventListener('DOMContentLoaded', setupDrawing);  // Ensure this is called once the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', populateImageList);  // Ensure this is called once the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', sortWordsOptionHandler);  // Ensure this is called once the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', populateColorOptions);
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+Flask
+Flask-SocketIO
+google-api-core
+google-auth
+google-cloud-vision
+googleapis-common-protos
+huggingface-hub
+numpy
+pandas
+pillow
+torch
+torchaudio
+torchvision
+transformers
+tqdm
+PyMuPDF

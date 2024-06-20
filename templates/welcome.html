@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome Page</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@eastdesire/jscolor"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: url('/static/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            width: auto; /* Width only as wide as the content requires */
+            height: auto; /* Height only as tall as the content requires */
+            background-color: rgba(255, 255, 255, 0.8); /* White with transparency */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Adds subtle shadow for depth */
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 50px; /* Space below the header */
+        }
+        .buttons-row {
+            display: flex; /* Lays out children (buttons) in a row */
+            justify-content: center; /* Center buttons horizontally */
+        }
+        .button {
+            width: 200px;
+            height: 200px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            font-size: 22px;
+            margin: 0 10px; /* Spacing between buttons */
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .button i {
+            margin-bottom: 10px; /* Space between icon and text */
+        }
+
+        #dialogBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            width: 700px;
+            font-family: Arial, sans-serif;
+        }
+
+        #dialogBox h2 {
+            margin-top: 0;
+            margin-bottom: 0;
+            color: #333;
+        }
+
+        #dialogBox label {
+            display: block;
+            margin-top: 10px;
+            color: #444;
+        }
+
+        #dialogBox input[type="text"] {
+            width: 96%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        #labelsContainer {
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 6px;
+            height: 150px;
+            overflow-y: auto;
+        }
+
+        .labelItem {
+            display: inline-block;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            margin-right: 2px;
+        }
+
+        .dialogBox button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #dialogBox button:hover {
+            background-color: #2980b9;
+        }
+
+        #labelsContainer .removeButton {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 0px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 0px;
+            margin-left: 5px;
+        }
+
+        .labelColorButton {
+            width: 26px;
+            height: 27px;
+            border-radius: 50%;
+            margin-right: 5px;
+            margin-top: 0px !important;
+            padding: 9px !important;
+            cursor: pointer;
+        }
+
+        .closeButton {
+            background-color: #e74c3c;
+            margin-left: 10px;
+        }
+
+        .color-botton {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        #closeColorPickerModal{
+            position: relative;
+            border-radius: 10px 0 0 0;
+            width: 40px;
+            height: 35px;
+            background-color: orangered;
+            color: white;
+            border-color: transparent;
+        }
+    </style>
+    <script>
+        const colors = ['darkblue', 'dodgerblue', 'aqua', 'turquoise','violet','DeepPink', 'darkviolet', 'MediumSlateBlue', 'maroon', 'Peru', 'lightcoral', 'darkorange', 'OrangeRed', 'khaki', 'gold', 'olivedrab', 'YellowGreen', 'lime'];
+        let availableColors = [...colors];
+
+        function preprocessInput(input) {
+            // Replace single quotes with double quotes
+            let jsonInput = input.replace(/'/g, '"');
+
+            // Ensure numerical keys are quoted
+            jsonInput = jsonInput.replace(/(\d+):/g, '"$1":');
+
+            return jsonInput;
+        }
+
+        function populateColorOptions() {
+            const colorOptions = document.getElementById('colorOptions');
+            colors.forEach(color => {
+                let colorBox = document.createElement('div');
+                colorBox.className = 'color-botton'
+                colorBox.style.backgroundColor = color;
+                colorBox.onclick = function() {
+                    selectColor(color);
+                };
+                colorOptions.appendChild(colorBox);
+            });
+
+            document.getElementById('closeColorPickerModal').addEventListener('click', function() {
+                document.getElementById('colorPickerModal').style.display = 'none'; // Hide the modal
+            });
+        }
+
+        function selectColor(color) {
+            currentColorButton.style.backgroundColor = color;
+            colorPickerModal.style.display = 'none'; // Hide the modal
+        }
+
+        document.addEventListener('DOMContentLoaded', populateColorOptions);
+
+        function getRandomColor() {
+            if (availableColors.length === 0) {
+                // Reset the availableColors if all have been used
+                availableColors = [...colors];
+            }
+            // Select a random color from availableColors
+            const colorIndex = Math.floor(Math.random() * availableColors.length);
+            const color = availableColors[colorIndex];
+
+            // Remove the selected color from availableColors
+            availableColors.splice(colorIndex, 1);
+
+            return color;
+        }
+
+        function changeColor(labelItem, colorButton) {
+            // Create dropdown or popup for color selection
+            let colorPicker = document.createElement('select');
+            colors.forEach(color => {
+                let option = document.createElement('option');
+                option.value = color;
+                option.style.backgroundColor = color;
+                option.textContent = color.charAt(0).toUpperCase() + color.slice(1); // Capitalize first letter
+                colorPicker.appendChild(option);
+            });
+            colorPicker.value = colorButton.style.backgroundColor;
+            colorPicker.onchange = function() {
+                colorButton.style.backgroundColor = this.value;
+                labelItem.dataset.color = this.value; // Save the selected color
+            };
+            colorButton.parentNode.insertBefore(colorPicker, colorButton);
+            colorButton.remove(); // Remove the initial button after dropdown creation
+        }
+
+        let currentColorButton; // This will reference the button that was clicked
+
+        function addLabelItem(labelName) {
+            const labelsContainer = document.getElementById('labelsContainer');
+            const labelItem = document.createElement('div');
+            labelItem.className = 'labelItem';
+            labelItem.textContent = labelName;
+
+            const colorButton = document.createElement('button');
+            colorButton.className = 'labelColorButton';
+            
+            // Check if the labelName is 'others' and set the color to 'black', otherwise use getRandomColor()
+            if (labelName === 'others') {
+                colorButton.style.backgroundColor = '#0000004d';
+            } else {
+                colorButton.style.backgroundColor = getRandomColor();
+            }
+            
+            colorButton.onclick = function() {
+                currentColorButton = this; // Set the current button
+                document.getElementById('colorPickerModal').style.display = 'block'; // Show the modal
+            };
+
+            const removeButton = document.createElement('button');
+            removeButton.className = 'removeButton';
+            removeButton.textContent = 'remove';
+            removeButton.onclick = function() {
+                labelsContainer.removeChild(labelItem);
+            };
+
+            labelItem.insertBefore(colorButton, labelItem.firstChild);
+            labelItem.appendChild(removeButton);
+            labelsContainer.appendChild(labelItem);
+        }
+        
+        function openSetupDialogBox(navigationPage) {
+            
+            const dialogBox = document.createElement('div');
+            dialogBox.id = 'dialogBox';
+            dialogBox.className = 'dialogBox';
+
+            const title = document.createElement('h2');
+            if (navigationPage === 'annotation'){
+                title.textContent = 'Annotating Tool Setup';
+            }
+            else{
+                title.textContent = 'Reviewing Tool Setup';
+            }
+
+            const modelPathLabel = document.createElement('label');
+            modelPathLabel.textContent = 'Model path (optional):';
+
+            const modelPathInput = document.createElement('input');
+            modelPathInput.type = 'text';
+            modelPathInput.id = 'modelPathInput';
+            modelPathInput.placeholder = 'e.g., your_huggingface/finetuned_layoutlmv3';
+
+            const tokenLabel = document.createElement('label');
+            tokenLabel.textContent = 'HuggingFace auth token (optional):';
+
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'text';
+            tokenInput.id = 'tokenInput';
+            tokenInput.placeholder = 'e.g., hf_SjdOoKPxrQWzIbUXxkY...';
+
+            const labelsLabel = document.createElement('label');
+            labelsLabel.textContent = 'Labels:';
+
+            const labelsContainer = document.createElement('div');
+            labelsContainer.id = 'labelsContainer';
+
+            const labelInput = document.createElement('input');
+            labelInput.type = 'text';
+            labelInput.id = 'labelInput';
+            labelInput.placeholder = "Enter label and press Enter (you can also enter label2id in this way: {0: 'client_code', 1: 'client_id', 2:...} )";
+
+            labelInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    const rawInput = labelInput.value.trim();
+
+                    try {
+                        const preprocessedInput = preprocessInput(rawInput); // Preprocess input for valid JSON parsing
+                        const parsedData = JSON.parse(preprocessedInput);
+
+                        if (Array.isArray(parsedData)) {
+                            parsedData.forEach((labelName) => {
+                                if (typeof labelName === 'string') {
+                                    addLabelItem(labelName);
+                                }
+                            });
+                        } else if (typeof parsedData === 'object') {
+                            Object.values(parsedData).forEach((labelName) => {
+                                if (typeof labelName === 'string') {
+                                    addLabelItem(labelName);
+                                }
+                            });
+                        } else {
+                            addLabelItem(rawInput);
+                        }
+                    } catch (e) {
+                        addLabelItem(rawInput);
+                    }
+
+                    labelInput.value = '';
+                }
+            });
+
+            const submitButton = document.createElement('button');
+            submitButton.textContent = 'Submit';
+            submitButton.addEventListener('click', function() {
+                // Create a new form dynamically
+                const form = document.createElement('form');
+                if (navigationPage === 'annotation'){
+                    form.action = '/annotate';
+                }
+                else{
+                    form.action = '/review';
+                }
+                
+                form.method = 'POST';
+
+                // Create hidden inputs to hold the data
+                const modelPathInputHidden = document.createElement('input');
+                modelPathInputHidden.type = 'hidden';
+                modelPathInputHidden.name = 'modelPath';
+                modelPathInputHidden.value = modelPathInput.value.trim();
+
+                const tokenInputHidden = document.createElement('input');
+                tokenInputHidden.type = 'hidden';
+                tokenInputHidden.name = 'token';
+                tokenInputHidden.value = tokenInput.value.trim();
+
+                const labels = Array.from(document.querySelectorAll('.labelItem')).map(label => {
+                    let labelText = '';
+                    Array.from(label.childNodes).forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                            labelText += node.textContent.trim();
+                        }
+                    });
+                    return {
+                        name: labelText,
+                        color: label.querySelector('.labelColorButton').style.backgroundColor
+                    };
+                });
+
+                const labelsInputHidden = document.createElement('input');
+                labelsInputHidden.type = 'hidden';
+                labelsInputHidden.name = 'labels';
+                labelsInputHidden.value = JSON.stringify(labels);
+
+                // Append the hidden inputs to the form
+                form.appendChild(modelPathInputHidden);
+                form.appendChild(tokenInputHidden);
+                form.appendChild(labelsInputHidden);
+
+                // Append the form to the document body temporarily
+                document.body.appendChild(form);
+
+                // Submit the form
+                form.submit();
+
+                // Clean up by removing the form after submission
+                document.body.removeChild(form);
+            });
+
+
+
+            const closeButton = document.createElement('button');
+            closeButton.className = 'closeButton';
+            closeButton.textContent = 'Close';
+
+            closeButton.addEventListener('click', function() {
+                document.body.removeChild(dialogBox);
+            });
+
+            dialogBox.appendChild(title);
+            dialogBox.appendChild(modelPathLabel);
+            dialogBox.appendChild(modelPathInput);
+            dialogBox.appendChild(tokenLabel);
+            dialogBox.appendChild(tokenInput);
+            dialogBox.appendChild(labelsLabel);
+            dialogBox.appendChild(labelInput);
+            dialogBox.appendChild(labelsContainer);
+            dialogBox.appendChild(submitButton);
+            dialogBox.appendChild(closeButton);
+
+            document.body.appendChild(dialogBox);
+        }
+
+        
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Database Assistant Tool</h1>
+        <div class="buttons-row">
+            <button class="button" onclick="window.location.href='/pdf2img'"><i class="fas fa-file-pdf"></i>PDF2IMG</button>
+            <button class="button" onclick="openSetupDialogBox('annotation')"><i class="fas fa-pen-fancy"></i>Annotating Tool</button>
+            <button class="button" onclick="openSetupDialogBox('review')"><i class="fas fa-search"></i>Reviewing Tool</button>
+        </div>
+        <div id="colorPickerModal" style="display: none; position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 10; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);">
+            <button id="closeColorPickerModal" style="position: relative;">X</button>
+            <div id="colorOptions" style="display: flex; flex-wrap: wrap; justify-content: space-around; padding: 20px;">
+                <!-- Color options will be populated here -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>
